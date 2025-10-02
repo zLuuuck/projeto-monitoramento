@@ -11,7 +11,6 @@ $isAdmin = isset($_SESSION['user_id']) && $_SESSION['user_id'] === 1;
 require_once '../scripts/conectarBanco.php';
 require_once '../scripts/func_produtos.php';
 
-
 $db = conectarBanco();
 
 function buscarProdutos($db)
@@ -208,116 +207,371 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin && isset($_POST['atualizar
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produtos</title>
-    <link rel="stylesheet" href="../styles/produtos.css">
-    <link rel="stylesheet" href="../styles/navbar.css">
+    <title>Produtos - Guri Games</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Configuração personalizada do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cyber-cyan': '#00ffff',
+                        'cyber-blue': '#0080ff',
+                        'dark-bg': '#0a0a0a',
+                    },
+                    animation: {
+                        'border-glow': 'borderGlow 3s ease-in-out infinite',
+                        'float-particle': 'floatParticle 15s linear infinite',
+                        'fade-in-up': 'fadeInUp 0.6s ease-out',
+                    },
+                    keyframes: {
+                        borderGlow: {
+                            '0%, 100%': {
+                                opacity: 0.5
+                            },
+                            '50%': {
+                                opacity: 1
+                            },
+                        },
+                        floatParticle: {
+                            '0%': {
+                                transform: 'translateY(100vh) translateX(0) rotate(0deg)',
+                                opacity: 0,
+                            },
+                            '10%': {
+                                opacity: 1
+                            },
+                            '90%': {
+                                opacity: 1
+                            },
+                            '100%': {
+                                transform: 'translateY(-100px) translateX(100px) rotate(360deg)',
+                                opacity: 0,
+                            },
+                        },
+                        fadeInUp: {
+                            'from': {
+                                opacity: 0,
+                                transform: 'translateY(30px)'
+                            },
+                            'to': {
+                                opacity: 1,
+                                transform: 'translateY(0)'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <script src="https://kit.fontawesome.com/0dc50eaa4b.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 
-<body>
+<body class="min-h-screen bg-gray-900 text-white flex flex-col">
     <?php include_once '../components/navbar.php'; ?>
-    <main>
+    <div class="particles" id="particles"></div>
 
-        <h1>Produtos Cadastrados</h1>
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Título Principal -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-black mb-4 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent uppercase tracking-wider animate-fade-in-up">
+                <i class="fas fa-gamepad mr-3"></i>
+                Nossos Produtos
+            </h1>
+            <div class="w-48 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 mx-auto rounded-full shadow-lg shadow-cyan-500/50"></div>
+        </div>
 
+        <!-- Formulário de Filtro -->
+        <div class="max-w-4xl mx-auto mb-12">
+            <form method="get" class="bg-gray-900/95 border-2 border-cyan-400 rounded-2xl p-6 md:p-8 shadow-2xl shadow-cyan-500/30 backdrop-blur-sm">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <!-- Buscar por nome -->
+                    <div>
+                        <label for="filtro" class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2">
+                            <i class="fas fa-search mr-2"></i>
+                            Buscar por nome:
+                        </label>
+                        <input
+                            type="text"
+                            id="filtro"
+                            name="filtro"
+                            value="<?= htmlspecialchars($_GET['filtro'] ?? '') ?>"
+                            placeholder="Digite o nome do produto..."
+                            class="w-full bg-black/90 border border-cyan-400 rounded-xl py-3 px-4 text-white transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-2xl focus:shadow-cyan-500/50 shadow-lg shadow-cyan-500/20">
+                    </div>
+
+                    <!-- Ordenar por -->
+                    <div>
+                        <label for="ordenar" class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2">
+                            <i class="fas fa-sort mr-2"></i>
+                            Ordenar por:
+                        </label>
+                        <select
+                            name="ordenar"
+                            id="ordenar"
+                            class="w-full bg-black/90 border border-cyan-400 rounded-xl py-3 px-4 text-white transition-all duration-300 focus:outline-none focus:border-blue-500 focus:shadow-2xl focus:shadow-cyan-500/50 shadow-lg shadow-cyan-500/20">
+                            <option value="">-- Selecione --</option>
+                            <option value="az" <?= ($_GET['ordenar'] ?? '') === 'az' ? 'selected' : '' ?>>Nome A-Z</option>
+                            <option value="za" <?= ($_GET['ordenar'] ?? '') === 'za' ? 'selected' : '' ?>>Nome Z-A</option>
+                            <option value="novo" <?= ($_GET['ordenar'] ?? '') === 'novo' ? 'selected' : '' ?>><i class="fas fa-bullseye mr-2"></i> Mais novo</option>
+                            <option value="antigo" <?= ($_GET['ordenar'] ?? '') === 'antigo' ? 'selected' : '' ?>><i class="fas fa-clock mr-2"></i> Mais antigo</option>
+                            <option value="maior_qtd" <?= ($_GET['ordenar'] ?? '') === 'maior_qtd' ? 'selected' : '' ?>><i class="fas fa-arrow-up mr-2"></i> Maior quantidade</option>
+                            <option value="menor_qtd" <?= ($_GET['ordenar'] ?? '') === 'menor_qtd' ? 'selected' : '' ?>><i class="fas fa-arrow-down mr-2"></i> Menor quantidade</option>
+                        </select>
+                    </div>
+
+                    <!-- Botão Filtrar -->
+                    <div>
+                        <button
+                            type="submit"
+                            class="w-full bg-gradient-to-r from-cyan-400 to-blue-500 text-gray-900 font-bold py-3 px-6 rounded-xl text-lg uppercase tracking-wide hover:shadow-2xl hover:shadow-cyan-500/40 transform hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-cyan-500/20">
+                            <i class="fas fa-rocket mr-2"></i>
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- MENSAGENS DE SUCESSO/ERRO -->
         <?php if ($mensagem): ?>
-            <?= $mensagem; ?>
+            <div class="max-w-4xl mx-auto mb-8">
+                <div class="<?= strpos($mensagem, 'sucesso') !== false ? 'bg-green-500/20 border-green-600 text-green-600' : 'bg-red-500/20 border-red-600 text-red-600' ?> border rounded-lg p-4 backdrop-blur-sm text-center">
+                    <?= $mensagem ?>
+                </div>
+            </div>
         <?php endif; ?>
-
-        <form method="get" style="margin-bottom: 20px;">
-            <label for="filtro">Buscar por nome:</label>
-            <input type="text" id="filtro" name="filtro" value="<?= htmlspecialchars($_GET['filtro'] ?? '') ?>">
-
-            <label for="ordenar">Ordenar por:</label>
-            <select name="ordenar" id="ordenar">
-                <option value="">-- Selecione --</option>
-                <option value="az" <?= ($_GET['ordenar'] ?? '') === 'az' ? 'selected' : '' ?>>Nome A-Z</option>
-                <option value="za" <?= ($_GET['ordenar'] ?? '') === 'za' ? 'selected' : '' ?>>Nome Z-A</option>
-                <option value="novo" <?= ($_GET['ordenar'] ?? '') === 'novo' ? 'selected' : '' ?>>Mais novo</option>
-                <option value="antigo" <?= ($_GET['ordenar'] ?? '') === 'antigo' ? 'selected' : '' ?>>Mais antigo</option>
-                <option value="maior_qtd" <?= ($_GET['ordenar'] ?? '') === 'maior_qtd' ? 'selected' : '' ?>>Maior quantidade</option>
-                <option value="menor_qtd" <?= ($_GET['ordenar'] ?? '') === 'menor_qtd' ? 'selected' : '' ?>>Menor quantidade</option>
-            </select>
-
-            <button type="submit">Filtrar</button>
-        </form>
 
         <?php if (empty($produtos)): ?>
-            <p>Nenhum produto cadastrado.</p>
-        <?php else: ?>
-            <?php foreach ($produtos as $produto): ?>
-                <div class="produto" data-id="<?= $produto['id'] ?>">
-                    <div class="view-mode">
-                        <h3><?= htmlspecialchars($produto['nome']) ?></h3>
-                        <p><strong>Modelo:</strong> <?= htmlspecialchars($produto['modelo']) ?></p>
-                        <p><strong>Cor:</strong> <?= htmlspecialchars($produto['cor']) ?></p>
-                        <p><strong>Quantidade:</strong> <?= $produto['quantidade'] ?></p>
-                        <?php if (!empty($produto['imagem'])): ?>
-                            <img src="<?= htmlspecialchars($produto['imagem']) ?>" alt="Imagem do produto" width="150" />
-                        <?php else: ?>
-                            <p><em>Imagem não disponível</em></p>
-                        <?php endif; ?>
-                        <?php if ($isAdmin): ?>
-                            <button class="btn-editar">Editar</button>
-                            <form method="post" action="" style="display:inline;" onsubmit="return confirm('Deseja excluir?');">
-                                <input type="hidden" name="excluir_id" value="<?= $produto['id'] ?>" />
-                                <button type="submit" style="background-color: red; color: white;">Excluir</button>
-                            </form>
-                        <?php endif; ?>
-                    </div>
-                    <?php if ($isAdmin): ?>
-                        <form class="edit-mode" style="display:none;" enctype="multipart/form-data">
-                            <input type="hidden" name="id" value="<?= $produto['id'] ?>" />
-                            <label>Nome: <input type="text" name="nome" value="<?= htmlspecialchars($produto['nome']) ?>" required /></label><br />
-                            <label>Modelo: <input type="text" name="modelo" value="<?= htmlspecialchars($produto['modelo']) ?>" required /></label><br />
-                            <label>Cor: <input type="text" name="cor" value="<?= htmlspecialchars($produto['cor']) ?>" required /></label><br />
-                            <label>Quantidade: <input type="number" name="quantidade" value="<?= $produto['quantidade'] ?>" required /></label><br />
-                            <label>Imagem: <input type="file" name="imagem" accept="image/*" /></label><br />
-                            <button type="submit">Salvar</button>
-                            <button type="button" class="btn-cancelar">Cancelar</button>
-                            <div class="msg-resultado"></div>
-                        </form>
-                    <?php endif; ?>
+            <!-- Estado Vazio -->
+            <div class="text-center py-16">
+                <div class="max-w-md mx-auto">
+                    <p class="text-2xl text-gray-300 mb-4">
+                        <i class="fas fa-frown text-gray-400 mr-2"></i>
+                        Nenhum produto encontrado.
+                    </p>
+                    <p class="text-lg text-gray-400">Tente ajustar os filtros ou verifique novamente mais tarde.</p>
                 </div>
-            <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <!-- Grid de Produtos - CENTRALIZADO -->
+            <div class="flex justify-center mb-12">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+                    <?php foreach ($produtos as $produto): ?>
+                        <div class="bg-gray-900/95 border-2 border-cyan-400 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/30 backdrop-blur-sm animate-fade-in-up group w-full max-w-sm">
+                            <!-- Modo Visualização -->
+                            <div class="view-mode">
+                                <!-- Nome do Produto -->
+                                <h3 class="text-xl font-bold text-cyan-400 mb-4 pb-3 border-b border-cyan-400/30 group-hover:text-cyan-300 transition-colors text-center">
+                                    <?= htmlspecialchars($produto['nome']) ?>
+                                </h3>
+
+                                <!-- Informações do Produto -->
+                                <div class="space-y-3 mb-4">
+                                    <p class="text-gray-300 text-center">
+                                        <strong class="text-cyan-400">
+                                            <i class="fas fa-id-card mr-2"></i>Modelo:
+                                        </strong><br>
+                                        <?= htmlspecialchars($produto['modelo']) ?>
+                                    </p>
+                                    <p class="text-gray-300 text-center">
+                                        <strong class="text-cyan-400">
+                                            <i class="fas fa-palette mr-2"></i>Cor:
+                                        </strong><br>
+                                        <?= htmlspecialchars($produto['cor']) ?>
+                                    </p>
+                                    <p class="text-gray-300 text-center">
+                                        <strong class="text-cyan-400">
+                                            <i class="fas fa-boxes mr-2"></i>Quantidade:
+                                        </strong><br>
+                                        <?= $produto['quantidade'] ?>
+                                    </p>
+                                </div>
+
+                                <!-- Imagem do Produto -->
+                                <?php if (!empty($produto['imagem'])): ?>
+                                    <div class="mb-4 flex justify-center">
+                                        <img
+                                            src="<?= htmlspecialchars($produto['imagem']) ?>"
+                                            alt="Imagem do produto <?= htmlspecialchars($produto['nome']) ?>"
+                                            class="w-full max-w-xs h-48 object-cover rounded-xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/20" />
+                                    </div>
+                                <?php else: ?>
+                                    <div class="mb-4 text-center py-8 bg-gray-800/50 rounded-xl border border-cyan-400/30">
+                                        <p class="text-gray-400 italic">
+                                            <i class="fas fa-image mr-2"></i>
+                                            Imagem não disponível
+                                        </p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Ações do Admin -->
+                                <?php if ($isAdmin): ?>
+                                    <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                                        <button class="btn-editar flex-1 bg-gradient-to-r from-green-400 to-green-600 text-gray-900 font-bold py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-green-500/40 transform hover:-translate-y-1 transition-all duration-300">
+                                            <i class="fas fa-edit mr-2"></i>
+                                            Editar
+                                        </button>
+                                        <form method="post" action="" class="flex-1" onsubmit="return confirm('Tem certeza que deseja excluir este produto?');">
+                                            <input type="hidden" name="excluir_id" value="<?= $produto['id'] ?>" />
+                                            <button type="submit" class="w-full bg-gradient-to-r from-red-400 to-red-600 text-white font-bold py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-red-500/40 transform hover:-translate-y-1 transition-all duration-300">
+                                                <i class="fas fa-trash mr-2"></i>
+                                                Excluir
+                                            </button>
+                                        </form>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Modo Edição (Admin) -->
+                            <?php if ($isAdmin): ?>
+                                <form class="edit-mode hidden mt-6 bg-gray-800/50 border-2 border-blue-500 rounded-xl p-4 space-y-4">
+                                    <input type="hidden" name="id" value="<?= $produto['id'] ?>" />
+
+                                    <div>
+                                        <label class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2 text-center">
+                                            <i class="fas fa-tag mr-2"></i>
+                                            Nome:
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="nome"
+                                            value="<?= htmlspecialchars($produto['nome']) ?>"
+                                            required
+                                            class="w-full bg-black/90 border border-cyan-400 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-cyan-500/50 text-center" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2 text-center">
+                                            <i class="fas fa-id-card mr-2"></i>
+                                            Modelo:
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="modelo"
+                                            value="<?= htmlspecialchars($produto['modelo']) ?>"
+                                            required
+                                            class="w-full bg-black/90 border border-cyan-400 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-cyan-500/50 text-center" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2 text-center">
+                                            <i class="fas fa-palette mr-2"></i>
+                                            Cor:
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="cor"
+                                            value="<?= htmlspecialchars($produto['cor']) ?>"
+                                            required
+                                            class="w-full bg-black/90 border border-cyan-400 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-cyan-500/50 text-center" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2 text-center">
+                                            <i class="fas fa-boxes mr-2"></i>
+                                            Quantidade:
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="quantidade"
+                                            value="<?= $produto['quantidade'] ?>"
+                                            required
+                                            min="1"
+                                            class="w-full bg-black/90 border border-cyan-400 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-cyan-500/50 text-center" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-cyan-400 font-bold text-sm uppercase tracking-wider mb-2 text-center">
+                                            <i class="fas fa-image mr-2"></i>
+                                            Imagem:
+                                        </label>
+                                        <input
+                                            type="file"
+                                            name="imagem"
+                                            accept="image/*"
+                                            class="w-full text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-500 file:text-gray-900 hover:file:bg-cyan-400" />
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                                        <button type="submit" class="flex-1 bg-gradient-to-r from-cyan-400 to-blue-500 text-gray-900 font-bold py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-cyan-500/40 transform hover:-translate-y-1 transition-all duration-300">
+                                            <i class="fas fa-save mr-2"></i>
+                                            Salvar
+                                        </button>
+                                        <button type="button" class="btn-cancelar flex-1 bg-gradient-to-r from-gray-400 to-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:shadow-lg hover:shadow-gray-500/40 transform hover:-translate-y-1 transition-all duration-300">
+                                            <i class="fas fa-times mr-2"></i>
+                                            Cancelar
+                                        </button>
+                                    </div>
+
+                                    <div class="msg-resultado text-center text-sm font-semibold mt-3"></div>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         <?php endif; ?>
     </main>
-    <?php
-    include_once '../components/footer.php';
-    ?>
+
+    <?php include_once '../components/footer.php'; ?>
 
     <script>
-        // Função para alternar modo edição e visualização
+        // Efeito de partículas para home (mantenha seu código)
+        function createHomeParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+
+                // Posição aleatória
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Inicializar partículas quando a página carregar
+        document.addEventListener('DOMContentLoaded', createHomeParticles);
+
+        // JavaScript para controle dos modos de visualização/edição
         document.querySelectorAll('.btn-editar').forEach(btn => {
             btn.addEventListener('click', () => {
-                const produtoDiv = btn.closest('.produto');
-                produtoDiv.querySelector('.view-mode').style.display = 'none';
-                produtoDiv.querySelector('.edit-mode').style.display = 'block';
+                const produtoDiv = btn.closest('.bg-gray-900');
+                produtoDiv.querySelector('.view-mode').classList.add('hidden');
+                produtoDiv.querySelector('.edit-mode').classList.remove('hidden');
             });
         });
 
         document.querySelectorAll('.btn-cancelar').forEach(btn => {
             btn.addEventListener('click', () => {
-                const produtoDiv = btn.closest('.produto');
-                produtoDiv.querySelector('.edit-mode').style.display = 'none';
-                produtoDiv.querySelector('.view-mode').style.display = 'block';
+                const produtoDiv = btn.closest('.bg-gray-900');
+                produtoDiv.querySelector('.edit-mode').classList.add('hidden');
+                produtoDiv.querySelector('.view-mode').classList.remove('hidden');
             });
         });
 
-        // Enviar formulário de edição via AJAX
         document.querySelectorAll('.edit-mode').forEach(form => {
             form.addEventListener('submit', e => {
                 e.preventDefault();
 
                 const formData = new FormData(form);
-                formData.append('action', 'editar'); // necessário para o PHP saber que é edição
+                formData.append('action', 'editar');
 
                 fetch('produtos.php', {
                         method: 'POST',
@@ -326,24 +580,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin && isset($_POST['atualizar
                     .then(response => response.json())
                     .then(data => {
                         const msgDiv = form.querySelector('.msg-resultado');
-                        msgDiv.className = '';
-                        msgDiv.classList.add(data.status === 'success' ? 'mensagem-sucesso' : 'mensagem-erro');
-                        msgDiv.innerHTML = data.msg;
-                        if (data.status === 'success') {
-                            const produtoDiv = form.closest('.produto');
-                            produtoDiv.querySelector('.view-mode h3').textContent = form.nome.value;
-                            produtoDiv.querySelector('.view-mode p:nth-of-type(1)').innerHTML = `<strong>Modelo:</strong> ${form.modelo.value}`;
-                            produtoDiv.querySelector('.view-mode p:nth-of-type(2)').innerHTML = `<strong>Cor:</strong> ${form.cor.value}`;
-                            produtoDiv.querySelector('.view-mode p:nth-of-type(3)').innerHTML = `<strong>Quantidade:</strong> ${form.quantidade.value}`;
 
+                        // Aplicar o mesmo estilo das outras mensagens
+                        msgDiv.className = 'msg-resultado border rounded-lg p-4 mb-6 backdrop-blur-sm text-center';
+
+                        if (data.status === 'success') {
+                            msgDiv.classList.add('bg-green-500/20', 'border-green-600', 'text-green-600');
+                            msgDiv.textContent = data.msg;
+
+                            // Atualizar dados na view
+                            const produtoDiv = form.closest('.bg-gray-900');
+                            const viewMode = produtoDiv.querySelector('.view-mode');
+
+                            viewMode.querySelector('h3').textContent = form.nome.value;
+                            viewMode.querySelector('p:nth-of-type(1)').innerHTML = `<strong class="text-cyan-400"><i class="fas fa-id-card mr-2"></i>Modelo:</strong> ${form.modelo.value}`;
+                            viewMode.querySelector('p:nth-of-type(2)').innerHTML = `<strong class="text-cyan-400"><i class="fas fa-palette mr-2"></i>Cor:</strong> ${form.cor.value}`;
+                            viewMode.querySelector('p:nth-of-type(3)').innerHTML = `<strong class="text-cyan-400"><i class="fas fa-boxes mr-2"></i>Quantidade:</strong> ${form.quantidade.value}`;
+
+                            // Atualizar imagem se foi enviada nova
                             if (form.imagem.files.length > 0) {
                                 const reader = new FileReader();
                                 reader.onload = function(e) {
-                                    let img = produtoDiv.querySelector('.view-mode img');
+                                    let imgContainer = viewMode.querySelector('div:has(img)');
+                                    if (!imgContainer) {
+                                        imgContainer = document.createElement('div');
+                                        imgContainer.className = 'mb-4';
+                                        viewMode.insertBefore(imgContainer, viewMode.querySelector('.flex'));
+                                    }
+                                    let img = imgContainer.querySelector('img');
                                     if (!img) {
                                         img = document.createElement('img');
-                                        img.width = 150;
-                                        produtoDiv.querySelector('.view-mode').appendChild(img);
+                                        img.className = 'w-full h-48 object-cover rounded-xl border-2 border-cyan-400 shadow-lg shadow-cyan-500/20';
+                                        imgContainer.appendChild(img);
                                     }
                                     img.src = e.target.result;
                                 }
@@ -351,28 +619,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAdmin && isset($_POST['atualizar
                             }
 
                             setTimeout(() => {
-                                form.style.display = 'none';
-                                produtoDiv.querySelector('.view-mode').style.display = 'block';
-                            }, 1500);
-
-                            // Remove a mensagem e a classe após 3 segundos
-                            setTimeout(() => {
+                                form.classList.add('hidden');
+                                viewMode.classList.remove('hidden');
                                 msgDiv.textContent = '';
-                                msgDiv.className = '';
-                            }, 3000);
-
+                                msgDiv.className = 'msg-resultado';
+                            }, 2000);
                         } else {
+                            msgDiv.classList.add('bg-red-500/20', 'border-red-600', 'text-red-600');
+                            msgDiv.textContent = data.msg;
+
                             setTimeout(() => {
                                 msgDiv.textContent = '';
-                                msgDiv.className = '';
+                                msgDiv.className = 'msg-resultado';
                             }, 3000);
                         }
                     })
                     .catch(() => {
                         const msgDiv = form.querySelector('.msg-resultado');
-                        msgDiv.className = '';
-                        msgDiv.classList.add('mensagem-erro');
-                        msgDiv.textContent = 'Erro na comunicação com o servidor.';
+                        msgDiv.className = 'msg-resultado border rounded-lg p-4 mb-6 backdrop-blur-sm text-center bg-red-500/20 border-red-600 text-red-600';
+                        msgDiv.textContent = '<i class="fas fa-exclamation-triangle mr-2"></i> Erro na comunicação com o servidor.';
+
+                        setTimeout(() => {
+                            msgDiv.textContent = '';
+                            msgDiv.className = 'msg-resultado';
+                        }, 3000);
                     });
             });
         });
