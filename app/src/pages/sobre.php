@@ -11,10 +11,10 @@ if (session_status() === PHP_SESSION_NONE) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sobre - Guri Games</title>
-    
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <link rel="icon" type="image/x-icon" href="../guri_games_icon.png">
     <!-- Configuração personalizada do Tailwind -->
     <script>
         tailwind.config = {
@@ -31,16 +31,24 @@ if (session_status() === PHP_SESSION_NONE) {
                     },
                     keyframes: {
                         borderGlow: {
-                            '0%, 100%': { opacity: 0.5 },
-                            '50%': { opacity: 1 },
+                            '0%, 100%': {
+                                opacity: 0.5
+                            },
+                            '50%': {
+                                opacity: 1
+                            },
                         },
                         floatParticle: {
                             '0%': {
                                 transform: 'translateY(100vh) translateX(0) rotate(0deg)',
                                 opacity: 0,
                             },
-                            '10%': { opacity: 1 },
-                            '90%': { opacity: 1 },
+                            '10%': {
+                                opacity: 1
+                            },
+                            '90%': {
+                                opacity: 1
+                            },
                             '100%': {
                                 transform: 'translateY(-100px) translateX(100px) rotate(360deg)',
                                 opacity: 0,
@@ -51,7 +59,7 @@ if (session_status() === PHP_SESSION_NONE) {
             }
         }
     </script>
-    
+
     <script src="https://kit.fontawesome.com/0dc50eaa4b.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="../styles/style.css">
 </head>
@@ -80,16 +88,16 @@ if (session_status() === PHP_SESSION_NONE) {
                     <div class="relative group h-full">
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3603.3953059451933!2d-49.3212071!3d-25.4250443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94dce6da131d6d1b%3A0x9b7d03b3efdf4053!2sUniversidade%20Tuiuti%20do%20Paran%C3%A1!5e0!3m2!1spt-BR!2sbr!4v1745708216016!5m2!1spt-BR!2sbr"
-                            width="100%" 
-                            height="500" 
-                            style="border:0;" 
-                            allowfullscreen="" 
+                            width="100%"
+                            height="500"
+                            style="border:0;"
+                            allowfullscreen=""
                             loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade"
                             title="Localização da Guri Games"
                             class="w-full h-full min-h-[500px] xl:min-h-[980px] lg:min-h-[1050px] border-2 border-cyan-400 rounded-2xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 group-hover:shadow-cyan-500/50 group-hover:-translate-y-1">
                         </iframe>
-                        
+
                         <!-- Efeito de brilho no hover -->
                         <div class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300 -z-10"></div>
                     </div>
@@ -184,19 +192,19 @@ if (session_status() === PHP_SESSION_NONE) {
                     <h4 class="text-cyan-400 font-bold mb-2">15+ Anos</h4>
                     <p class="text-gray-300 text-sm">de experiência no mercado</p>
                 </div>
-                
+
                 <div class="bg-gray-900/90 backdrop-blur-sm border-2 border-cyan-400 rounded-2xl p-6 text-center shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:-translate-y-1 transition-all duration-300">
                     <i class="fas fa-award text-cyan-400 text-3xl mb-3"></i>
                     <h4 class="text-cyan-400 font-bold mb-2">Qualidade</h4>
                     <p class="text-gray-300 text-sm">garantida em todos os produtos</p>
                 </div>
-                
+
                 <div class="bg-gray-900/90 backdrop-blur-sm border-2 border-cyan-400 rounded-2xl p-6 text-center shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:-translate-y-1 transition-all duration-300">
                     <i class="fas fa-tachometer-alt text-cyan-400 text-3xl mb-3"></i>
                     <h4 class="text-cyan-400 font-bold mb-2">Performance</h4>
                     <p class="text-gray-300 text-sm">máxima para gaming</p>
                 </div>
-                
+
                 <div class="bg-gray-900/90 backdrop-blur-sm border-2 border-cyan-400 rounded-2xl p-6 text-center shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:-translate-y-1 transition-all duration-300">
                     <i class="fas fa-handshake text-cyan-400 text-3xl mb-3"></i>
                     <h4 class="text-cyan-400 font-bold mb-2">Confiança</h4>
@@ -215,16 +223,16 @@ if (session_status() === PHP_SESSION_NONE) {
             if (!particlesContainer) return;
 
             const particleCount = 50;
-            
+
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.classList.add('particle');
-                
+
                 // Posição aleatória
                 particle.style.left = Math.random() * 100 + 'vw';
                 particle.style.animationDelay = Math.random() * 20 + 's';
                 particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                
+
                 particlesContainer.appendChild(particle);
             }
         }
@@ -233,4 +241,5 @@ if (session_status() === PHP_SESSION_NONE) {
         document.addEventListener('DOMContentLoaded', createParticles);
     </script>
 </body>
+
 </html>
