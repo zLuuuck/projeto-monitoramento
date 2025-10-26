@@ -7,18 +7,26 @@ receivers:
         endpoint: 0.0.0.0:4318
   docker_stats:
     endpoint: unix:///var/run/docker.sock
-    collection_interval: 10s
+    collection_interval: 30s
     timeout: 5s
-    # Remova a linha api_version daqui - ela vai para as variáveis de ambiente
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      cpu: {}
+      memory: {}
+      load: {}
+      network: {}
+      # Removemos filesystem, paging, processes e process que causam erros
 
 processors:
   batch:
     timeout: 10s
     send_batch_size: 1024
-  memory_limiter:
-    check_interval: 2s
-    limit_mib: 400
-    spike_limit_mib: 100
+  resourcedetection:
+    detectors: [system, env, docker]
+    system:
+      hostname_sources: [os]
+    timeout: 5s
 
 exporters:
   otlp:
@@ -30,8 +38,7 @@ exporters:
     compression: gzip
     timeout: 30s
   logging:
-    loglevel: debug
-  debug: {}
+    verbosity: normal  # Reduzido para ver menos logs
 
 extensions:
   health_check:
@@ -46,20 +53,19 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, logging]
+      processors: [resourcedetection, batch]
+      exporters: [otlp]
     metrics:
-      receivers: [otlp, docker_stats]
-      processors: [batch]
-      exporters: [otlp, logging]
+      receivers: [otlp, docker_stats, hostmetrics]
+      processors: [resourcedetection, batch]
+      exporters: [otlp]  # Removemos logging para reduzir output
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, logging]
+      processors: [resourcedetection, batch]
+      exporters: [otlp]
 
   telemetry:
     logs:
       level: info
     metrics:
       level: basic
-    resource: {}

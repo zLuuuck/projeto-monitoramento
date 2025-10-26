@@ -47,15 +47,20 @@ services:
     volumes:
       - ./opentelemetry-collector/config.yaml:/etc/otel/config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro  # Mantemos apenas proc
+      - /sys:/host/sys:ro    # Mantemos sys
+      # Removemos montagens problemáticas
     command: 
       - "--config=/etc/otel/config.yaml"
     ports:
-      - "4317:4317" # OTLP gRPC
-      - "4318:4318" # OTLP HTTP
-      - "13133:13133" # Health check
-      - "8888:8888" # Metrics
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133"
+      - "8888:8888"
     environment:
       - DOCKER_API_VERSION=1.40
+      - HOST_PROC=/host/proc
+      - HOST_SYS=/host/sys
     restart: unless-stopped
     networks:
       - app-network
@@ -65,6 +70,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    privileged: false  # Removemos privileged já que não estamos mais montando todo o filesystem
 
 volumes:
   mysql_data:
