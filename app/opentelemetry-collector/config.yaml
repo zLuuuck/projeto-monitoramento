@@ -1,0 +1,65 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    collection_interval: 10s
+    timeout: 5s
+    # Remova a linha api_version daqui - ela vai para as variáveis de ambiente
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: 400
+    spike_limit_mib: 100
+
+exporters:
+  otlp:
+    endpoint: "ingest.us.signoz.cloud:443"
+    tls:
+      insecure: false
+    headers:
+      "signoz-access-token": "a2442dc2-80db-4b78-83ed-41fa2e8e76de"
+    compression: gzip
+    timeout: 30s
+  logging:
+    loglevel: debug
+  debug: {}
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, logging]
+    metrics:
+      receivers: [otlp, docker_stats]
+      processors: [batch]
+      exporters: [otlp, logging]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, logging]
+
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      level: basic
+    resource: {}
