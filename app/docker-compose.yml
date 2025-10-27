@@ -47,9 +47,9 @@ services:
     volumes:
       - ./opentelemetry-collector/config.yaml:/etc/otel/config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
-      - /proc:/host/proc:ro  # Mantemos apenas proc
-      - /sys:/host/sys:ro    # Mantemos sys
-      # Removemos montagens problemáticas
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/hostname:/etc/hostname-host:ro  # Lê o hostname real do host
     command: 
       - "--config=/etc/otel/config.yaml"
     ports:
@@ -61,6 +61,7 @@ services:
       - DOCKER_API_VERSION=1.40
       - HOST_PROC=/host/proc
       - HOST_SYS=/host/sys
+      - HOST_HOSTNAME=fedora  # Define explicitamente o hostname
     restart: unless-stopped
     networks:
       - app-network
@@ -70,7 +71,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    privileged: false  # Removemos privileged já que não estamos mais montando todo o filesystem
+    hostname: fedora  # Define o hostname do container como "fedora"
 
 volumes:
   mysql_data:

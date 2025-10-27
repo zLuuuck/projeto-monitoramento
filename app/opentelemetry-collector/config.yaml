@@ -16,17 +16,25 @@ receivers:
       memory: {}
       load: {}
       network: {}
-      # Removemos filesystem, paging, processes e process que causam erros
 
 processors:
   batch:
     timeout: 10s
     send_batch_size: 1024
   resourcedetection:
-    detectors: [system, env, docker]
+    detectors: [system]
     system:
       hostname_sources: [os]
+    # Configuração correta para override de atributos
+    override: false  # Não usamos override com attributes customizados
     timeout: 5s
+  # Adicionamos um processor de transform para forçar o hostname
+  transform:
+    metric_statements:
+      - context: resource
+        statements:
+          - set(attributes["host.name"], "fedora")
+          - set(attributes["service.name"], "fedora-system")
 
 exporters:
   otlp:
@@ -37,8 +45,6 @@ exporters:
       "signoz-access-token": "a2442dc2-80db-4b78-83ed-41fa2e8e76de"
     compression: gzip
     timeout: 30s
-  logging:
-    verbosity: normal  # Reduzido para ver menos logs
 
 extensions:
   health_check:
@@ -57,8 +63,8 @@ service:
       exporters: [otlp]
     metrics:
       receivers: [otlp, docker_stats, hostmetrics]
-      processors: [resourcedetection, batch]
-      exporters: [otlp]  # Removemos logging para reduzir output
+      processors: [resourcedetection, transform, batch]  # Adicionamos transform aqui
+      exporters: [otlp]
     logs:
       receivers: [otlp]
       processors: [resourcedetection, batch]
