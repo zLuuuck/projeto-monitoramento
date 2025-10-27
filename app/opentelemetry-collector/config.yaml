@@ -5,10 +5,12 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+  
   docker_stats:
     endpoint: unix:///var/run/docker.sock
     collection_interval: 30s
     timeout: 5s
+
   hostmetrics:
     collection_interval: 30s
     scrapers:
@@ -16,19 +18,20 @@ receivers:
       memory: {}
       load: {}
       network: {}
+      disk: {}
+      filesystem: {}
 
 processors:
   batch:
     timeout: 10s
     send_batch_size: 1024
+  
   resourcedetection:
     detectors: [system]
     system:
       hostname_sources: [os]
-    # Configuração correta para override de atributos
-    override: false  # Não usamos override com attributes customizados
     timeout: 5s
-  # Adicionamos um processor de transform para forçar o hostname
+
   transform:
     metric_statements:
       - context: resource
@@ -49,29 +52,21 @@ exporters:
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133
-  pprof:
-    endpoint: 0.0.0.0:1777
-  zpages:
-    endpoint: 0.0.0.0:55679
 
 service:
-  extensions: [health_check, pprof, zpages]
+  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [resourcedetection, batch]
       exporters: [otlp]
+    
     metrics:
       receivers: [otlp, docker_stats, hostmetrics]
-      processors: [resourcedetection, transform, batch]  # Adicionamos transform aqui
+      processors: [resourcedetection, transform, batch]
       exporters: [otlp]
+    
     logs:
       receivers: [otlp]
       processors: [resourcedetection, batch]
       exporters: [otlp]
-
-  telemetry:
-    logs:
-      level: info
-    metrics:
-      level: basic
